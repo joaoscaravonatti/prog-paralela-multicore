@@ -23,13 +23,24 @@ class Filosofo(threading.Thread):
     def comer(self):
         garfo1, garfo2 = self.garfo_esquerda, self.garfo_direita
 
+        # prevenção do starvation
+        # gera um tempo máximo e vai incrementando a cada vez que tenta pegar os garfos
+        # caso chegue no tempo máximo sem comer ele recebe prioridade, os garfos são liberados ele começa a comer
+        max_tempo_sem_comer = int(random.uniform(5, 20))
+        tempo_sem_comer = 0
+
         print('%s esta pegando os garfos.' % self.nome)
         while self.executando:
-            garfo1_disponivel = garfo1.acquire()
+            if tempo_sem_comer == max_tempo_sem_comer:
+                print('%s ganhou prioridade.' % self.nome)
+                garfo1.release()
+                garfo2.release()
+            garfo1.acquire()
             garfo2_disponivel = garfo2.acquire()
-            if garfo1_disponivel and garfo2_disponivel: break
+            if garfo2_disponivel: break
             garfo1.release()
-            # garfo1, garfo2 = garfo2, garfo1
+            tempo_sem_comer += 1
+            sleep(1)
         else:
             return
 
